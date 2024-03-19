@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "725948100181",
+    "project_id": "mobsynoptic",
+    "storage_bucket": "mobsynoptic.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:725948100181:android:694cbac03ad7ac01e1eedc",
+        "android_client_info": {
+          "package_name": "com.example.synopticmobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZ_1id7Fy4yNAqmPzb9RNbCoCVhkarKUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

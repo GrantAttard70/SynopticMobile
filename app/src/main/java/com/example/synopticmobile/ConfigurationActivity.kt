@@ -4,6 +4,7 @@ import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.RemoteViews
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +18,8 @@ class ConfigurationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.configuration_activity)
-
+        val views = RemoteViews(packageName, R.layout.widget_layout)
+        views.setViewVisibility(R.id.warningText, View.GONE)
         val buttonValletta: Button = findViewById(R.id.buttonValletta)
         val buttonParis: Button = findViewById(R.id.buttonParis)
         val buttonRome: Button = findViewById(R.id.buttonRome)

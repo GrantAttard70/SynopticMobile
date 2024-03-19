@@ -8,6 +8,15 @@
     <TextView
         android:id="@+id/weatherTextView"
         android:layout_width="match_parent"
-        android:layout_height="146dp"
+        android:layout_height="75dp"
         android:text="Widget Placeholder Text" />
+
+    <TextView
+        android:id="@+id/warningText"
+        android:layout_width="237dp"
+        android:layout_height="35dp"
+        android:text="!WEATHER WARNING!"
+        android:textColor="#B71C1C"
+ />
+
 </LinearLayout>

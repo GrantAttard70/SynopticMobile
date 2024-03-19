@@ -3,6 +3,7 @@ package com.example.synopticmobile
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
+import android.view.View
 import android.widget.RemoteViews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -19,24 +20,28 @@ class MultiWidgetProvider : AppWidgetProvider() {
     }
 
     private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-        val prefs = context.getSharedPreferences("WidgetPrefs", Context.MODE_PRIVATE)
-        val city = prefs.getString("city", "valletta") ?: "valletta " //default value :)
-
         GlobalScope.launch(Dispatchers.IO) {
             try {
+                val prefs = context.getSharedPreferences("WidgetPrefs", Context.MODE_PRIVATE)
+                val city = prefs.getString("city", "valletta") ?: "valletta" // default value
+
                 val weatherData = findWeatherData(city)
                 val temperature = weatherData?.optInt("temp") ?: -1
                 val condition = weatherData?.optString("condition") ?: "Unknown"
 
-
                 val views = RemoteViews(context.packageName, R.layout.widget_layout)
                 views.setTextViewText(R.id.weatherTextView, "Temperature: $temperature°C, Condition: $condition")
+
+                val notificationReceived = false
+                views.setViewVisibility(R.id.warningText, if (notificationReceived) View.VISIBLE else View.GONE)
+
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
+
 
     private fun findWeatherData(city: String): JSONObject? {
         val apiUrl = "https://api.jamesdecelis.com/api/v1/weather/$city"
