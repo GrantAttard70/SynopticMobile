@@ -1,22 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- widget_layout.xml -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:clickable="true"
+    android:focusable="true">
 
+    <ImageView
+        android:id="@+id/batteryIcon"
+        android:layout_width="200px"
+        android:layout_height="200px"
+        android:src="@drawable/yellow" /> <!-- Default icon -->
     <TextView
         android:id="@+id/weatherTextView"
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="wrap_content"
         android:text="Widget Placeholder Text" />
 
     <TextView
         android:id="@+id/warningText"
-        android:layout_width="237dp"
-        android:layout_height="35dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="!WEATHER WARNING!"
-        android:textColor="#B71C1C"
- />
+        android:textColor="#B71C1C" />
+
 
 </LinearLayout>

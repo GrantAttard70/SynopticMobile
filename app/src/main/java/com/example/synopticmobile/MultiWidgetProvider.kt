@@ -1,61 +1,110 @@
 package com.example.synopticmobile
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+
 import android.content.Context
-import android.view.View
+import android.content.Intent
+import android.os.BatteryManager
+import android.os.SystemClock
+import android.util.Log
 import android.widget.RemoteViews
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import org.json.JSONObject
-import java.net.URL
-import javax.net.ssl.HttpsURLConnection
 
 class MultiWidgetProvider : AppWidgetProvider() {
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+
+    companion object {
+        private const val ACTION_SHOW_CHARGING_LOG = "com.example.synopticmobile.SHOW_CHARGING_LOG"
+
+    }
+
+    private fun getBatteryLevel(context: Context): Int {
+        val batteryManager = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        return batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+    }
+    private fun updateBatteryIcon(context: Context, batteryLevel: Int, views: RemoteViews) {
+        val iconResId = when {
+            batteryLevel >= 75 -> R.drawable.full
+            batteryLevel >= 45 -> R.drawable.orange
+            else -> R.drawable.red
+        }
+        views.setImageViewResource(R.id.batteryIcon, iconResId)
+    }
+    override fun onUpdate(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
+    ) {
+
         for (appWidgetId in appWidgetIds) {
+            Log.i("WidgetUpdate", "onUpdate() method called")
             updateWidget(context, appWidgetManager, appWidgetId)
+
+        }
+
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmIntent = Intent(context, MultiWidgetProvider::class.java).let { intent ->
+            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        }
+
+
+        alarmManager.setRepeating(
+            AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            SystemClock.elapsedRealtime(),
+            2000,
+            alarmIntent
+        )
+
+        val views = RemoteViews(context.packageName, R.layout.widget_layout)
+        val pendingIntent = createPendingIntent(context)
+        views.setOnClickPendingIntent(R.id.widget, pendingIntent)
+
+        appWidgetManager.updateAppWidget(appWidgetIds, views)
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        super.onReceive(context, intent)
+        if (intent?.action == ACTION_SHOW_CHARGING_LOG) {
+            val logIntent = Intent(context, ChargingLogActivity::class.java)
+            logIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context?.startActivity(logIntent)
         }
     }
 
-    private fun updateWidget(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
-        GlobalScope.launch(Dispatchers.IO) {
-            try {
-                val prefs = context.getSharedPreferences("WidgetPrefs", Context.MODE_PRIVATE)
-                val city = prefs.getString("city", "valletta") ?: "valletta" // default value
 
-                val weatherData = findWeatherData(city)
-                val temperature = weatherData?.optInt("temp") ?: -1
-                val condition = weatherData?.optString("condition") ?: "Unknown"
+    private fun updateWidget(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+            appWidgetId: Int
+        ) {
 
-                val views = RemoteViews(context.packageName, R.layout.widget_layout)
-                views.setTextViewText(R.id.weatherTextView, "Temperature: $temperature°C, Condition: $condition")
 
-                val notificationReceived = false
-                views.setViewVisibility(R.id.warningText, if (notificationReceived) View.VISIBLE else View.GONE)
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    val views = RemoteViews(context.packageName, R.layout.widget_layout)
+                    val batteryLevel = getBatteryLevel(context)
+                    updateBatteryIcon(context, batteryLevel, views)
 
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-            } catch (e: Exception) {
-                e.printStackTrace()
+                    val pendingIntent = createPendingIntent(context)
+                    views.setOnClickPendingIntent(R.id.widget, pendingIntent)
+                    appWidgetManager.updateAppWidget(appWidgetId, views)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
+
+
         }
+
+    private fun createPendingIntent(context: Context): PendingIntent {
+        val intent = Intent(context, MultiWidgetProvider::class.java)
+        intent.action = ACTION_SHOW_CHARGING_LOG
+        return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
 
-    private fun findWeatherData(city: String): JSONObject? {
-        val apiUrl = "https://api.jamesdecelis.com/api/v1/weather/$city"
-        val url = URL(apiUrl)
-        val connection = url.openConnection() as? HttpsURLConnection
-        return try {
-            connection?.connectTimeout = 5000
-            connection?.readTimeout = 5000
-            val inputStream = connection?.inputStream
-            val jsonString = inputStream?.bufferedReader().use { it?.readText() } ?: ""
-            JSONObject(jsonString)
-        } finally {
-            connection?.disconnect()
-        }
     }
-
-}

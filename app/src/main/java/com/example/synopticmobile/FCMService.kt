@@ -1,4 +1,5 @@
 package com.example.synopticmobile
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.appwidget.AppWidgetManager
@@ -22,9 +23,9 @@ class FCMService : FirebaseMessagingService() {
             val body = it.body ?: ""
             displayNotification(title, body)
 
-            // Update widget after displaying notification
             updateWarningVisibility()
         }
+
     }
 
     private fun displayNotification(title: String, body: String) {
@@ -45,9 +46,10 @@ class FCMService : FirebaseMessagingService() {
         notificationManager.notify(0, notificationBuilder.build())
 
     }
+    @SuppressLint("RemoteViewLayout")
     private fun updateWarningVisibility() {
         val appWidgetManager = AppWidgetManager.getInstance(this)
-        val widgetIds = appWidgetManager.getAppWidgetIds(ComponentName(this, MultiWidgetProvider::class.java))
+        val widgetIds = appWidgetManager.getAppWidgetIds(ComponentName(this, ConfigurationActivity::class.java))
         val views = RemoteViews(packageName, R.layout.widget_layout)
         views.setViewVisibility(R.id.warningText, View.VISIBLE)
 
